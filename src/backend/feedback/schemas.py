@@ -40,8 +40,8 @@ class TranslationFeedback(BaseModel):
     User-provided feedback on a translation.
     """
 
-    normal_text: str = Field(..., description="Original text.")
-    top_text: str = Field(..., description="Translated text.")
+    text_original: str = Field(..., description="Original text.")
+    text_translated: str = Field(..., description="Translated text.")
     strategy: TranslationStrategy = Field(
         ...,
         description="Translation strategy that was applied to the text.",
