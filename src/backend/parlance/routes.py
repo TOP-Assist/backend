@@ -1,7 +1,10 @@
 """HTTP route definitions for parlance word functionality."""
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Request
+from fastapi.exceptions import HTTPException
 
+from backend.parlance.deps import ParlanceServiceDep
+from backend.parlance.errors import ParlanceNotFoundError
 from backend.parlance.schemas import ParlanceWord
 
 router = APIRouter(prefix="/parlance", tags=["parlance"])
@@ -15,20 +18,28 @@ router = APIRouter(prefix="/parlance", tags=["parlance"])
         }
     },
 )
-def get_parlance(domain: str, min_freq: int = 0) -> list[ParlanceWord]:
+async def get_parlance(
+    service: ParlanceServiceDep,
+    domain: str,
+    min_freq: int = 0,
+) -> list[ParlanceWord]:
     """
     Get a list of words (defined by their lemma and part-of-speech tag) that are
     considered parlance in a given domain.
     """
-    # TODO: Implement Parlance-Getting function.
-    raise NotImplementedError
+    try:
+        return await service.get_parlance(domain, min_freq)
+    except ParlanceNotFoundError as exc:
+        raise HTTPException(
+            status_code=404,
+            detail="Could not find any parlance for the given domain.",
+        ) from exc
 
 
 @router.get("/domains")
-def get_domains() -> list[str]:
+def get_domains(request: Request) -> list[str]:
     """
     Get a list of all domains for which we currently provide curated parlance
     information.
     """
-    # TODO: Implement Domain-Getting function.
-    raise NotImplementedError
+    return request.app.state.domains
