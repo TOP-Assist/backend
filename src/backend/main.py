@@ -78,7 +78,6 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         )
         app.state.translation_service = TranslationService(
             client=translation_client,
-            base_prompt=settings.translation_base_prompt,
         )
 
         yield

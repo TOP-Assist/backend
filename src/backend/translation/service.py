@@ -12,11 +12,8 @@ class TranslationService:
     def __init__(
         self,
         client: TranslationClient,
-        *,
-        base_prompt: str,
     ) -> None:
         self._client = client
-        self._base_prompt = base_prompt
 
     async def translate(
         self,
