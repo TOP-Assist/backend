@@ -24,3 +24,6 @@ class Settings(BaseSettings):
         default=5_000,
         gt=0,
     )
+
+    analysis_num_workers: int = 1
+    analysis_model: str = "de_dep_news_trf"

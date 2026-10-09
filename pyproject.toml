@@ -14,6 +14,7 @@ dependencies = [
     "pydantic-settings>=2.15.0",
     "pymongo>=4.18.2",
     "uvicorn>=0.54.0",
+    "torch>=2.14.1",
 ]
 
 [project.scripts]
@@ -22,6 +23,16 @@ backend = "backend:main"
 [build-system]
 requires = ["uv_build>=0.12.17,<0.13.0"]
 build-backend = "uv_build"
+
+[tool.uv.sources]
+torch = [
+  { index = "pytorch-cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 
 [tool.ruff]
 line-length = 80

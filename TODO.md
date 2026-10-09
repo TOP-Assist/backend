@@ -12,6 +12,7 @@
 
 - POST `/api/analyze` -> POST `/analysis`
   - The route now does not wrap its response in a "message" dict so the consuming route should be adjusted as well.
+  - The request body also switched parameters from `skip_barriers` (with default "False") to `check_barriers` (default "True").
 - POST `/api/domain/` -> GET `/parlance/domains`
   - No longer takes any parameters. I made this decision to take load off of our mongoDB. Given the _tiny_ number of supported domains, we can just always send all of them and have any search in the drop-down be performed by the frontend application.
 - POST `/api/parlance_words` -> GET `/parlance`

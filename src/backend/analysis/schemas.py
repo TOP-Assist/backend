@@ -1,6 +1,8 @@
 """Object definitions for text analysis functionality."""
 
-from pydantic import BaseModel, Field
+from typing import Self
+
+from pydantic import BaseModel, Field, model_validator
 
 from backend.parlance.schemas import ParlanceWord
 
@@ -47,12 +49,25 @@ class AnalysisRequest(BaseModel):
 
     text: str
     parlance_words: list[ParlanceWord] | None = None
-    skip_barriers: bool = False
+    check_barriers: bool = True
+
+    @model_validator(mode="after")
+    def check_analysis_is_requested(self) -> Self:
+        """
+        Ensure that the request actually contains a request for analysis to rule
+        out cases where the client sends a request that contains no parlance
+        and asks to omit barrier analysis.
+        """
+        if self.parlance_words is None and not self.check_barriers:
+            raise ValueError(
+                "The request requested neither parlance nor barrier analysis."
+            )
+        return self
 
 
 class AnalysisResult(BaseModel):
     """The result of a text complexity analysis."""
 
     text: str
-    barriers: list[BarrierTokenHighlight]
-    parlance: list[TokenHighlight]
+    barriers: list[BarrierTokenHighlight] | None
+    parlance: list[TokenHighlight] | None
