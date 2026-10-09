@@ -27,3 +27,13 @@ class Settings(BaseSettings):
 
     analysis_num_workers: int = 1
     analysis_model: str = "de_dep_news_trf"
+
+    llm_base_url: str
+    llm_api_key: SecretStr
+    llm_model: str
+
+    llm_temperature: float = Field(default=0, ge=0, le=2)
+    llm_timeout_seconds: float = Field(default=60, gt=0)
+    llm_max_retries: int = Field(default=0, ge=0, le=2)
+
+    translation_base_prompt: str

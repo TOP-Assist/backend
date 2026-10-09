@@ -2,10 +2,12 @@
 
 import asyncio
 import multiprocessing
+from collections.abc import AsyncGenerator
 from concurrent.futures import ProcessPoolExecutor
-from contextlib import asynccontextmanager
+from contextlib import AsyncExitStack, asynccontextmanager
 
 from fastapi import FastAPI
+from openai import AsyncOpenAI
 from pymongo import AsyncMongoClient
 
 from backend.analysis.executor import AnalysisExecutor
@@ -15,55 +17,71 @@ from backend.config import Settings
 from backend.feedback.routes import router as feedback_router
 from backend.logging import configure_logging
 from backend.parlance.routes import router as parlance_router
+from backend.translation.client import OpenAICompatibleTranslationClient
 from backend.translation.routes import router as translation_router
+from backend.translation.service import TranslationService
 
 API_PREFIX = "/v1"
 
 
 @asynccontextmanager
-async def lifespan(app: FastAPI):
-    """
-    Set up components that each fastAPI worker should own throughout their
-    lifetime.
-    """
-    # Pyright doesn't play nice for required env vars so we have to shush it.
+async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
+    """Initialize resources owned by this API worker."""
     settings = Settings()  # pyright: ignore[reportCallIssue]
     app.state.settings = settings
     configure_logging(settings.log_level)
 
-    mongo_client = AsyncMongoClient(
-        settings.mongodb_uri.get_secret_value(),
-        serverSelectionTimeoutMS=(settings.mongodb_server_selection_timeout_ms),
-    )
+    async with AsyncExitStack() as stack:
+        # Register mongoDB components.
+        mongo_client = AsyncMongoClient(
+            settings.mongodb_uri.get_secret_value(),
+            serverSelectionTimeoutMS=(
+                settings.mongodb_server_selection_timeout_ms
+            ),
+        )
+        stack.push_async_callback(mongo_client.close)
+        await mongo_client.admin.command("ping")
+        mongodb = mongo_client[settings.mongodb_database]
+        app.state.mongodb = mongodb
+        app.state.domains = await mongodb["parlance"].distinct("domain")
 
-    try:
+        # Register `analysis` components.
         pool = ProcessPoolExecutor(
             max_workers=settings.analysis_num_workers,
             mp_context=multiprocessing.get_context("spawn"),
             initializer=initialize_worker,
             initargs=(settings.analysis_model,),
         )
-        executor = AnalysisExecutor(pool, max_outstanding=2)
-        # Start the worker, load the model, and performs warm inference.
-        # Startup fails if initialization or inference fails.
-        _ = await executor.analyze("Das ist ein kurzer Beispielsatz.")
-        app.state.analysis_exec = executor
-
-        # Fail startup if MongoDB is unavailable.
-        await mongo_client.admin.command("ping")
-        app.state.mongodb = mongo_client[settings.mongodb_database]
-        # Load domains on startup to avoid DB hits for static information.
-        app.state.domains = app.state.mongodb["parlance"].distinct("domain")
-
-        yield
-    finally:
-        await mongo_client.close()
-
-        await asyncio.to_thread(
+        stack.push_async_callback(
+            asyncio.to_thread,
             pool.shutdown,
             wait=True,
             cancel_futures=True,
         )
+        executor = AnalysisExecutor(pool, max_outstanding=2)
+        _ = await executor.analyze("Das ist ein kurzer Beispielsatz.")
+        app.state.analysis_exec = executor
+
+        # Register `translation` components.
+        sdk = await stack.enter_async_context(
+            AsyncOpenAI(
+                base_url=settings.llm_base_url,
+                api_key=settings.llm_api_key.get_secret_value(),
+                timeout=settings.llm_timeout_seconds,
+                max_retries=settings.llm_max_retries,
+            )
+        )
+        translation_client = OpenAICompatibleTranslationClient(
+            sdk,
+            model=settings.llm_model,
+            temperature=settings.llm_temperature,
+        )
+        app.state.translation_service = TranslationService(
+            client=translation_client,
+            base_prompt=settings.translation_base_prompt,
+        )
+
+        yield
 
 
 app = FastAPI(lifespan=lifespan)
