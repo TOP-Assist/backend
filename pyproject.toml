@@ -16,6 +16,7 @@ dependencies = [
     "uvicorn>=0.54.0",
     "torch>=2.14.1",
     "openai==2.54.0",
+    "de-dep-news-trf",
 ]
 
 [project.scripts]
@@ -29,6 +30,7 @@ build-backend = "uv_build"
 torch = [
   { index = "pytorch-cpu" },
 ]
+de-dep-news-trf = { url = "https://github.com/explosion/spacy-models/releases/download/de_dep_news_trf-3.8.0/de_dep_news_trf-3.8.0-py3-none-any.whl" }
 
 [[tool.uv.index]]
 name = "pytorch-cpu"
