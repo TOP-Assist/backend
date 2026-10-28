@@ -6,8 +6,16 @@ services:
       dockerfile: Containerfile
     ports:
       - 8000:8000
+    env_file: .env
     environment:
-      -
+      - LOG_LEVEL=DEBUG
+      - MONGODB_HOST=mongo
+      - MONGODB_USERNAME=${MONGO_USER:-root_user}
+      - MONGODB_PASSWORD=${MONGO_PASSWORD:-password}
+      - MONGODB_DATABASE=top_assist
+      - ANALYSIS_NUM_WORKERS=1
+      # LLM access variables are in unversioned .env for security.
+      - LLM_TEMPERATURE=0.0
     depends_on:
       - mongo
   mongo:
