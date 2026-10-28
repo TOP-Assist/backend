@@ -2,10 +2,12 @@
 name = "backend"
 version = "0.1.0"
 description = "Add your description here"
+license = "AGPL-3.0-or-later"
+license-files = ["LICENSES/*.txt"]
 readme = "README.md"
 authors = [
     { name = "Miguel Alves Gomes", email = "alvesgomes@uni-wuppertal.de" },
-    { name = "Jannik Schmitt", email = "jannik.schmitt@deepsight.de" }
+    { name = "Jannik Schmitt", email = "jannik.schmitt@deepsight.de" },
 ]
 requires-python = ">=3.13"
 dependencies = [
@@ -27,9 +29,7 @@ requires = ["uv_build>=0.12.17,<0.13.0"]
 build-backend = "uv_build"
 
 [tool.uv.sources]
-torch = [
-  { index = "pytorch-cpu" },
-]
+torch = [{ index = "pytorch-cpu" }]
 de-dep-news-trf = { url = "https://github.com/explosion/spacy-models/releases/download/de_dep_news_trf-3.8.0/de_dep_news_trf-3.8.0-py3-none-any.whl" }
 
 [[tool.uv.index]]

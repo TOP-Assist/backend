@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Bergische Universität Wuppertal
+# SPDX-FileCopyrightText: 2026 deepsight GmbH
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 from collections.abc import Sequence
 
 from backend.analysis.schemas import BarrierTokenHighlight
