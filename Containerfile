@@ -14,6 +14,7 @@ RUN uv sync --locked --no-dev --no-install-project --no-cache
 
 # Install the application as a regular, non-editable package.
 COPY README.md ./
+COPY LICENSES/ ./LICENSES/
 COPY src/ ./src/
 RUN uv sync --locked --no-dev --no-editable --no-cache
 
