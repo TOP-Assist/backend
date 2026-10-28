@@ -82,7 +82,8 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
             temperature=settings.llm_temperature,
         )
         app.state.translation_service = TranslationService(
-            client=translation_client,
+            client=translation_client,  # pyright: ignore[reportArgumentType]
+            prompt_variant=settings.llm_prompt_variant,
         )
 
         yield

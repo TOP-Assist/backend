@@ -17,8 +17,12 @@ class TranslationService:
     def __init__(
         self,
         client: TranslationClient,
+        *,
+        prompt_variant: str = "default",
     ) -> None:
         self._client = client
+        # Resolve prompts up front so a misconfigured variant fails at startup.
+        self._default_prompt = default.get_prompt(prompt_variant)
 
     async def translate(
         self,
@@ -31,6 +35,7 @@ class TranslationService:
         match strategy:
             case TranslationStrategy.DEFAULT:
                 instructions = default.prepare(
+                    self._default_prompt,
                     barriers=barriers or (),
                     parlance_words=parlance_words or (),
                 )

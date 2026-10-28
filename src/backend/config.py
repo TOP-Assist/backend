@@ -36,6 +36,7 @@ class Settings(BaseSettings):
     llm_base_url: str
     llm_api_key: SecretStr
     llm_model: str
+    llm_prompt_variant: str = Field(default="default", min_length=1)
 
     llm_temperature: float = Field(default=0, ge=0, le=2)
     llm_timeout_seconds: float = Field(default=60, gt=0)
