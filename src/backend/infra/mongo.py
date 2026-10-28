@@ -12,7 +12,7 @@ from pymongo.asynchronous.database import AsyncDatabase
 
 
 async def get_mongodb(request: Request) -> AsyncDatabase[dict[str, Any]]:
-    return request.app.state.db
+    return request.app.state.mongodb
 
 
 MongoDBDep = Annotated[
