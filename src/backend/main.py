@@ -60,7 +60,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         )
         executor = await AnalysisExecutor.create(pool, max_outstanding=2)
         _ = await executor.analyze("Das ist ein kurzer Beispielsatz.")
-        app.state.analysis_exec = executor
+        app.state.analysis_executor = executor
 
         # Register `translation` components.
         sdk = await stack.enter_async_context(
