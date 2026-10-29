@@ -6,6 +6,7 @@
 """Entrypoint for the fastAPI application."""
 
 import asyncio
+import logging
 import multiprocessing
 from collections.abc import AsyncGenerator
 from concurrent.futures import ProcessPoolExecutor
@@ -22,11 +23,18 @@ from backend.config import Settings
 from backend.feedback.routes import router as feedback_router
 from backend.logging import configure_logging
 from backend.parlance.routes import router as parlance_router
+from backend.telemetry import (
+    configure_telemetry,
+    instrument_fastapi,
+    instrument_mongodb,
+)
 from backend.translation.client import OpenAICompatibleTranslationClient
 from backend.translation.routes import router as translation_router
 from backend.translation.service import TranslationService
 
 API_PREFIX = "/v1"
+
+logger = logging.getLogger(__name__)
 
 
 @asynccontextmanager
@@ -37,6 +45,18 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
     configure_logging(settings.log_level)
 
     async with AsyncExitStack() as stack:
+        if settings.telemetry_enabled:
+            stack.enter_context(configure_telemetry(settings))
+            instrument_mongodb()
+            logger.info(
+                "Telemetry enabled; pushing to %s.",
+                settings.otel_exporter_otlp_endpoint,
+            )
+        else:
+            logger.info(
+                "Telemetry disabled; set OTEL_EXPORTER_OTLP_ENDPOINT to enable."
+            )
+
         # Register mongoDB components.
         mongo_client = AsyncMongoClient(
             settings.mongodb_uri.get_secret_value(),
@@ -89,7 +109,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None]:
         yield
 
 
-app = FastAPI(lifespan=lifespan)
+app = FastAPI(
+    lifespan=lifespan,
+    # No auto-configure because we baked our own.
+    telemetry={"auto_configure": False},
+)
+instrument_fastapi(app)
 
 
 @app.get("/health")

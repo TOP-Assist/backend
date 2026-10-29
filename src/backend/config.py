@@ -21,7 +21,9 @@ class Settings(BaseSettings):
         frozen=True,
         hide_input_in_errors=True,
     )
+    otel_service_name: str = "top-assist-backend"
     log_level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO"
+    otel_exporter_otlp_endpoint: str | None = None
 
     mongodb_host: str = Field(min_length=1)
     mongodb_port: int = Field(default=27017, gt=0, le=65535)
@@ -50,3 +52,11 @@ class Settings(BaseSettings):
         return SecretStr(
             f"mongodb://{username}:{password}@{self.mongodb_host}:{self.mongodb_port}"
         )
+
+    @property
+    def telemetry_enabled(self) -> bool:
+        """
+        Whether telemetry is configured. Inferred based on whether the
+        environment contains an endpoint to report to.
+        """
+        return bool(self.otel_exporter_otlp_endpoint)
