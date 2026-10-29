@@ -43,7 +43,7 @@ This is done in order to avoid leaking API keys into version control.
 
 ## Licensing
 
-This project follows the [REUSE specification](https://reuse.software/) so that every file carries machine-readable copyright and license information in [SPDX](https://spdx.dev/) format. The project is licensed under the [AGPL 3.0 or later](LICENSES/AGPL-3.0-or-later.txt.); the full license texts are in `LICENSES/`.
+This project follows the [REUSE specification](https://reuse.software/) so that every file carries machine-readable copyright and license information in [SPDX](https://spdx.dev/) format. The project is licensed under the [AGPL 3.0 or later](LICENSES/AGPL-3.0-or-later.txt); the full license texts are in `LICENSES/`.
 
 The copyright is held jointly by deepsight GmbH and Bergische Universität Wuppertal. Every source file starts with a header like this:
 
@@ -52,6 +52,8 @@ The copyright is held jointly by deepsight GmbH and Bergische Universität Wuppe
 # SPDX-FileCopyrightText: 2026 Bergische Universität Wuppertal
 # SPDX-License-Identifier: AGPL-3.0-or-later
 ```
+
+Files that cannot carry such a header are annotated in `REUSE.toml` instead. This applies to generated files (`uv.lock`), tool configuration without comment support (`.python-version`) and the LLM prompts in `src/backend/translation/prompts/`, which are sent to the model verbatim and must therefore not contain a header.
 
 We use the [`reuse`](https://github.com/fsfe/reuse-tool) tool to add and check these headers. It can be run via `uvx` without installing it:
 
@@ -67,4 +69,4 @@ uvx reuse annotate \
 uvx reuse lint
 ```
 
-Please remember to annotate all files with SPDX headers before committing.
+Please remember to annotate all files with SPDX headers (or add them to `REUSE.toml`) before committing.

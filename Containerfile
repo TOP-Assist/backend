@@ -1,3 +1,8 @@
+# SPDX-FileCopyrightText: 2026 Bergische Universität Wuppertal
+# SPDX-FileCopyrightText: 2026 deepsight GmbH
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
 FROM docker.io/library/python:3.14-slim-trixie
 
 COPY --from=ghcr.io/astral-sh/uv:0.12.23 /uv /usr/local/bin/uv
