@@ -41,6 +41,36 @@ This is done in order to avoid leaking API keys into version control.
 
 ---
 
+## Telemetry
+
+This service supports push-based telemetry (traces, metrics and logs) via OTLP over gRPC.
+Telemetry is enabled by setting `OTEL_EXPORTER_OTLP_ENDPOINT` to the gRPC endpoint of your OpenTelemetry collector, including the scheme (e.g. `http://collector:4317` for plaintext, `https://...` for TLS).
+`OTEL_SERVICE_NAME` sets the service name reported to the collector (default: `top-assist-backend`).
+Further `OTEL_*` variables (e.g. `OTEL_EXPORTER_OTLP_HEADERS`) are read by the OpenTelemetry SDK from the process environment only, not from `.env`.
+
+The `compose.yml` stack includes a Grafana LGTM container for local exploration.
+Grafana is available at http://localhost:3000; use _Explore_ with the Tempo (traces), Prometheus (metrics) or Loki (logs) data source.
+The OTLP port `4317` is published on `127.0.0.1` only, so a natively running backend can report to it via `OTEL_EXPORTER_OTLP_ENDPOINT=http://localhost:4317`.
+
+---
+
+## Tips for running the service productively
+
+### Right-size your workers
+
+Keep in mind that barrier analysis has its own worker pool, each with a somewhat chunky transformer-based spaCy model loaded into RAM.
+Moreover, **each fastAPI worker has its own barrier analysis worker pool**.
+This means that _n_ fastAPI workers with _m_ barrier analysis workers will lead to _n * m_ spaCy models loaded into RAM.
+Adjust your configuration to avoid extraneous RAM usage.
+
+### Separate service from observability
+
+Do not run the OTel stack on the same (virtual) machine as your productive server.
+**The provided compose file is not meant for a production environment.**
+You will want to avoid having your productive service compete for memory with the service you have set up to monitor your productive service.
+
+---
+
 ## Licensing
 
 This project follows the [REUSE specification](https://reuse.software/) so that every file carries machine-readable copyright and license information in [SPDX](https://spdx.dev/) format. The project is licensed under the [AGPL 3.0 or later](LICENSES/AGPL-3.0-or-later.txt); the full license texts are in `LICENSES/`.

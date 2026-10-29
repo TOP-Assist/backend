@@ -24,6 +24,11 @@ dependencies = [
     "torch>=2.14.1",
     "openai==2.54.0",
     "de-dep-news-trf",
+    "opentelemetry-sdk>=1.45.1",
+    "opentelemetry-instrumentation-fastapi>=0.66b1",
+    "opentelemetry-instrumentation-pymongo>=0.66b1",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.45.1",
+    "opentelemetry-instrumentation-logging>=0.66b1",
 ]
 
 [project.scripts]
