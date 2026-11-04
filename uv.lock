@@ -50,7 +50,6 @@ wheels = [
 
 [[package]]
 name = "backend"
-version = "1.0.0"
 source = { editable = "." }
 dependencies = [
     { name = "de-dep-news-trf" },

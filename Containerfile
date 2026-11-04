@@ -21,7 +21,11 @@ RUN uv sync --locked --no-dev --no-install-project --no-cache
 COPY README.md ./
 COPY LICENSES/ ./LICENSES/
 COPY src/ ./src/
-RUN uv sync --locked --no-dev --no-editable --no-cache
+# .git is not part of the build context, so the package version cannot be read
+# from the git tag here. CI passes it in as VERSION (see README, "Releases").
+ARG VERSION=0.0.0+local
+RUN UV_DYNAMIC_VERSIONING_BYPASS="${VERSION}" \
+    uv sync --locked --no-dev --no-editable --no-cache
 
 # Run as an unprivileged numeric user.
 USER 10001:10001
