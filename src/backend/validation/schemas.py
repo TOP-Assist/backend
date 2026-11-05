@@ -3,6 +3,13 @@ from typing import Any
 from pydantic import BaseModel, Field
 
 
+class ValidationRequest(BaseModel):
+    input_text: str
+    output_text: str
+
+    selected_validators: str = "all"
+
+
 class ValidationResult(BaseModel):
     """Translation Validation Result for a single metric"""
 
