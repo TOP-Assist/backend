@@ -78,7 +78,7 @@ Releases are made from git tags of the form `vX.Y.Z` (e.g. `v1.2.0`), which are 
 - The Python package version is derived from it by [uv-dynamic-versioning](https://github.com/ninoseki/uv-dynamic-versioning).
   `pyproject.toml` deliberately contains no version, so please do not add one.
   Untagged commits get development versions such as `1.2.1.dev3+1a2b3c4`; run `uvx uv-dynamic-versioning` to print the version of your checkout.
-- The container image is tagged with the version **without** the `v` prefix, i.e. `v1.2.0` is published as `docker.io/therealdeepsight/top-assist-backend:1.2.0`.
+- The container image is tagged with the version **without** the `v` prefix, i.e. `v1.2.0` is published as `docker.io/inbap/top-assist-backend:1.2.0`.
 
 To publish a release, tag the commit and push the tag:
 
@@ -124,7 +124,7 @@ docker buildx build -f Containerfile \
   --label org.opencontainers.image.revision="$(git rev-parse HEAD)" \
   --label org.opencontainers.image.source="https://git.uni-wuppertal.de/top-assist/backend" \
   --output type=registry,rewrite-timestamp=true \
-  --tag docker.io/therealdeepsight/top-assist-backend:"$VERSION" \
+  --tag docker.io/inbap/top-assist-backend:"$VERSION" \
   .
 ```
 
