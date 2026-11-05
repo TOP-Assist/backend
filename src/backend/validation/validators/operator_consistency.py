@@ -1,8 +1,11 @@
 import re
 
+from backend.validation.service import ValidationService
 from backend.validation.validators.base import Validator
 from nltk.tokenize import word_tokenize
 
+
+@ValidationService.register("operator_consistency", enabled=True)
 class OperatorConsistency(Validator):
     @staticmethod
     def _normalize_string(string: str) -> list[str]:
@@ -14,9 +17,9 @@ class OperatorConsistency(Validator):
     def _operators_in_order(normalized_string: list[str], operators: list[str]) -> list[str]:
         return [i for i in normalized_string if i in operators]
 
-    def run(self, operators: list[str]):
-        inp_normalized = self._normalize_string(self.input)
-        out_normalized = self._normalize_string(self.output)
+    async def run(self, inp: str, out: str, operators: list[str]):
+        inp_normalized = self._normalize_string(inp)
+        out_normalized = self._normalize_string(out)
 
         # Keep order
         inp_ops = self._operators_in_order(inp_normalized, operators)

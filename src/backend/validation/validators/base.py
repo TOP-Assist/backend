@@ -9,10 +9,10 @@ class ValidatorResult(BaseModel):
     meta: dict[str, Any]
 
 class Validator(ABC):
-    def __init__(self, input: str, output: str):
-        self.input = input
-        self.output = output
+    def __init__(self):
+        ...
 
+    # TODO: **kwargs is in violation of Liskov
     @abstractmethod
-    def run(self, **kwargs) -> ValidatorResult:
+    async def run(self, inp: str, out: str, **kwargs) -> ValidatorResult:
         ...
