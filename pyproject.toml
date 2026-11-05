@@ -5,7 +5,8 @@
 
 [project]
 name = "backend"
-version = "1.0.0"
+# Derived from the git tag (vX.Y.Z) by uv-dynamic-versioning; see README.
+dynamic = ["version"]
 description = "The backend for the TOP Assist text optimization application."
 license = "AGPL-3.0-or-later"
 license-files = ["LICENSES/*.txt"]
@@ -24,14 +25,36 @@ dependencies = [
     "torch>=2.14.1",
     "openai==2.54.0",
     "de-dep-news-trf",
+    "opentelemetry-sdk>=1.45.1",
+    "opentelemetry-instrumentation-fastapi>=0.66b1",
+    "opentelemetry-instrumentation-pymongo>=0.66b1",
+    "opentelemetry-exporter-otlp-proto-grpc>=1.45.1",
+    "opentelemetry-instrumentation-logging>=0.66b1",
 ]
 
 [project.scripts]
 backend = "backend:main"
 
 [build-system]
-requires = ["uv_build>=0.12.17,<0.13.0"]
-build-backend = "uv_build"
+# uv-dynamic-versioning does not support the uv_build backend (yet).
+requires = ["hatchling>=1.27", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/backend"]
+
+[tool.uv-dynamic-versioning]
+vcs = "git"
+style = "pep440"
+# Untagged commits after v1.2.0 become 1.2.1.devN+g<hash> instead of 1.2.0.postN.
+bump = true
+
+[tool.uv]
+# Rebuild the project when the version changes, not only when files change.
+cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true, tags = true } }]
 
 [tool.uv.sources]
 torch = [{ index = "pytorch-cpu" }]
