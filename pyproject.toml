@@ -30,7 +30,7 @@ dependencies = [
     "opentelemetry-instrumentation-pymongo>=0.66b1",
     "opentelemetry-exporter-otlp-proto-grpc>=1.45.1",
     "opentelemetry-instrumentation-logging>=0.66b1",
-    "nltk>=3.10.4",
+    "hanta>=1.2.1",
 ]
 
 [dependency-groups]

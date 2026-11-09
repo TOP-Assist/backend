@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Optional
 
 from pydantic import BaseModel, Field
 
@@ -30,5 +30,6 @@ class ValidationResult(BaseModel):
 
 class TranslationValidation(BaseModel):
     """Translation Validation Result for all metrics for one Translation"""
-    translation_id: str     # TODO: Is this stored?
     results: dict[str, ValidationResult] = Field(default_factory=dict)
+    translation_id: Optional[str] = None  # TODO: Is this stored?
+    inserted_id: Optional[str] = None

@@ -1,18 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import Any
+from typing import Any, Optional
 
-from pydantic import BaseModel
+from backend.validation.schemas import ValidationResult
 
-
-class ValidatorResult(BaseModel):
-    score: float
-    meta: dict[str, Any]
 
 class Validator(ABC):
-    def __init__(self):
-        ...
+    _registry_name: str
 
-    # TODO: **kwargs is in violation of Liskov
     @abstractmethod
-    async def run(self, inp: str, out: str, **kwargs) -> ValidatorResult:
+    async def run(self, inp: str, out: str, meta: Optional[dict[str, Any]]) -> ValidationResult:
         ...

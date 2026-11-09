@@ -5,6 +5,7 @@
 
 services:
     backend:
+        container_name: backend
         restart: on-failure
         build:
             context: .
@@ -26,6 +27,7 @@ services:
             - mongo
             - lgtm
     mongo:
+        container_name: mongo
         image: docker.io/mongo:9.0.2
         ports:
             - 127.0.0.1:27017:27017
@@ -35,6 +37,7 @@ services:
         volumes:
             - mongo-data:/data/db
     lgtm:
+        container_name: lgtm
         image: docker.io/grafana/otel-lgtm:0.38.1
         ports:
             - 127.0.0.1:3000:3000

@@ -3,7 +3,7 @@
 import logging
 
 from backend.validation.deps import ValidationServiceDep
-from backend.validation.schemas import ValidationRequest
+from backend.validation.schemas import ValidationRequest, TranslationValidation
 
 from fastapi import APIRouter, HTTPException
 
@@ -17,9 +17,10 @@ router = APIRouter(prefix="/validation", tags=["validation"])
 async def post_validation(
     body: ValidationRequest,
     service: ValidationServiceDep,
-):
-    # TBD: Do we want to control metrics per-prompt? If not, this is not needed.
-    assert body.selected_validators == "all", "Selecting a subset of validators is not supported yet."
+) -> TranslationValidation:
+    # TODO: Do we want to control metrics per-prompt? If not, this is not needed.
+    assert body.selected_validators == "all",\
+        "Selecting a subset of validators is not supported yet."
 
     try:
         return await service.run(body.input_text, body.output_text)

@@ -2,12 +2,11 @@
 # SPDX-FileCopyrightText: 2026 deepsight GmbH
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-import uuid
-from typing import Callable, TypeVar
+from typing import Callable, TypeVar, Any, Optional
 
 from backend.validation.schemas import ValidationResult, TranslationValidation
 from pymongo.asynchronous.collection import AsyncCollection
-from backend.validation.validators.base import Validator, ValidatorResult
+from backend.validation.validators.base import Validator
 
 ValidatorType = TypeVar("ValidatorType", bound=type[Validator])
 
@@ -32,21 +31,21 @@ class ValidationService:
     def __init__(self, collection: AsyncCollection):
         self.validators: dict[str, Validator] = {
             validator_name: validator()
-            for validator_name, (validator, enabled) in self._registry.values() if enabled
+            for validator_name, (validator, enabled) in self._registry.items() if enabled
         }
         self._collection = collection
 
-    async def run(self, inp: str, out: str) -> str:
-        results = {}
-        for validator_name, validator in self.validators.items():
-            score, meta = await validator.run(inp, out)
-            validator_result = ValidationResult(metric=validator_name, score=score, meta=meta)
-            results[validator_name] = validator_result
+    async def run(self, inp: str, out: str, meta: Optional[dict[str, Any]] = None) -> TranslationValidation:
+        results = {
+            validator_name: await validator.run(inp, out, meta)
+            for validator_name, validator in self.validators.items()
+        }
 
         validation_result = TranslationValidation(
-            translation_id=uuid.uuid4().hex,
             results=results
         )
 
         result = await self._collection.insert_one(validation_result.model_dump())
-        return result.inserted_id
+
+        validation_result.inserted_id = str(result.inserted_id)
+        return validation_result
