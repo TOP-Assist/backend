@@ -6,6 +6,8 @@
 """Service class for text analysis functionality."""
 from typing import Optional
 
+import polars as pl
+
 from limes import Sentence, Text
 from limes.analyzers.base import BaseAnalyzer
 from limes.parsers import SpacyParser
@@ -21,11 +23,18 @@ from backend.parlance.schemas import ParlanceWord
 
 
 class AnalysisService:
-    _default_operators: list[str] = [] # TODO
-
     def __init__(self, parser: SpacyParser, analyzer: BaseAnalyzer) -> None:
         self._parser = parser
         self._analyzer = analyzer
+
+        # TODO: Store this in Mongo?!
+        default_operators: list[str] = (
+            pl.read_csv("src/backend/analysis/resources/operators.csv", separator=";")
+            .get_column("Operator")
+            .to_list()
+        )
+
+        self._default_operators = [operator.lemma_.lower() for operator in self._parser._nlp(" ".join(default_operators))]
 
     def get_barrier_definitions(self) -> list[BarrierDescription]:
         """
@@ -235,4 +244,3 @@ class AnalysisService:
         ]
 
         return [i for i in normalized_input if i in operators]
-    
