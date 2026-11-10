@@ -1,3 +1,4 @@
+import copy
 from itertools import zip_longest
 
 from limes.analyzers.de import GermanAnalyzer
@@ -39,15 +40,18 @@ class OperatorConsistency(Validator):
 
         else:
             matches = []
+            # Preserve output operators for returning result
+            output_operators_editable = copy.deepcopy(output_operators)
             for inp_op in input_operators:
                 try:
-                    out_op_idx = output_operators.index(inp_op)
-                    output_operators.pop(out_op_idx)
+                    out_op_idx = output_operators_editable.index(inp_op)
+                    output_operators_editable.pop(out_op_idx)
                     matches.append(True)
                 except ValueError:
                     matches.append(False)
 
-        score = sum(matches) / len(matches) if len(matches) > 0 else 0
+        max_operators = max(len(input_operators), len(output_operators))
+        score = sum(matches) / max_operators if max_operators > 0 else 0
 
         return ValidationResult(
             metric=self.__class__.__name__,
