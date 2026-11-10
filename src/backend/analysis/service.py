@@ -17,7 +17,7 @@ from backend.analysis.schemas import (
     AnalysisResult,
     BarrierDescription,
     BarrierTokenHighlight,
-    TokenHighlight,
+    TokenHighlight, OperatorRequest, OperatorResult,
 )
 from backend.parlance.schemas import ParlanceWord
 
@@ -27,7 +27,6 @@ class AnalysisService:
         self._parser = parser
         self._analyzer = analyzer
 
-        # TODO: Store this in Mongo?!
         default_operators: list[str] = (
             pl.read_csv("src/backend/analysis/resources/operators.csv", separator=";")
             .get_column("Operator")
@@ -232,15 +231,16 @@ class AnalysisService:
             sentence_start + local_end,
         )
 
-    def get_operators(self, inp: str, operators: Optional[list[str]] = None)  -> list[str]:
-        if operators is None:
-            operators = self._default_operators
+    def get_operators(self, request: OperatorRequest)  -> OperatorResult:
+        operators = self._default_operators if request.operators is None else request.operators
 
-        doc = self._parser._nlp(inp)
+        doc = self._parser._nlp(request.input)
         normalized_input = [
             token.lemma_.lower()
             for token in doc
             if not (token.is_punct or token.is_space)
         ]
 
-        return [i for i in normalized_input if i in operators]
+        out = [i for i in normalized_input if i in operators]
+
+        return OperatorResult(operators=out)

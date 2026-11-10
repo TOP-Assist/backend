@@ -1,37 +1,37 @@
 import copy
 from itertools import zip_longest
+from typing import Self
 
-from limes.analyzers.de import GermanAnalyzer
-from limes.parsers import SpacyParser
-from pydantic import BaseModel
-
-from backend.analysis.service import AnalysisService
+from backend.analysis.executor import AnalysisExecutor
+from backend.analysis.schemas import OperatorRequest
 from backend.validation.schemas import ValidationResult, ValidationRequest
 from backend.validation.service import ValidationService
-from backend.validation.validators.base import Validator
+from backend.validation.validators.base import Validator, ValidatorParametrization
 
 
-class OperatorConsistencyParametrization(BaseModel):
+class OperatorConsistencyParametrization(ValidatorParametrization):
     preserve_order: bool = True
 
 @ValidationService.register()
 class OperatorConsistency(Validator):
-    # TODO: Use from context
-    _analyzer = AnalysisService(
-        parser=SpacyParser(model="de_dep_news_trf"),
-        analyzer=GermanAnalyzer()
-    )
+    _parametrization = OperatorConsistencyParametrization
 
-    parametrization = OperatorConsistencyParametrization
-
-    def __init__(self, parametrization: OperatorConsistencyParametrization):
-        self.preserve_order = parametrization.preserve_order
+    def __init__(
+        self,
+        parametrization: OperatorConsistencyParametrization,
+        analysis_executor: AnalysisExecutor,
+    ):
+        super().__init__(parametrization)
+        self._analysis_executor = analysis_executor
 
     async def run(self, request: ValidationRequest) -> ValidationResult:
-        input_operators = self._analyzer.get_operators(request.input_text)
-        output_operators = self._analyzer.get_operators(request.output_text)
+        input_operators = await self._analysis_executor.get_operators(OperatorRequest(input=request.input_text))
+        output_operators = await self._analysis_executor.get_operators(OperatorRequest(input=request.output_text))
 
-        if self.preserve_order:
+        input_operators = input_operators.operators
+        output_operators = output_operators.operators
+
+        if self.parametrization.preserve_order:
             matches = [
                 inp_op == out_op
                 for inp_op, out_op
@@ -55,7 +55,7 @@ class OperatorConsistency(Validator):
 
         return ValidationResult(
             metric=self.__class__.__name__,
-            parameters=vars(self),
+            parameters=self.parametrization.model_dump(),
             score=score,
             meta = {
                 "matches": matches,
@@ -63,3 +63,11 @@ class OperatorConsistency(Validator):
                 "output_operators": output_operators,
             }
         )
+
+    @classmethod
+    def create(
+        cls,
+        parametrization: OperatorConsistencyParametrization,
+        analysis_executor: AnalysisExecutor
+    ) -> Self:
+        return cls(parametrization, analysis_executor)

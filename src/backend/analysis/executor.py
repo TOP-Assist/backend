@@ -10,7 +10,7 @@ executed.
 
 import asyncio
 from concurrent.futures import ProcessPoolExecutor
-from typing import Self, Optional
+from typing import Self
 
 from backend.analysis.errors import AnalysisBusyError
 from backend.analysis.schemas import AnalysisResult, BarrierDescription, OperatorRequest, OperatorResult
@@ -108,7 +108,7 @@ class AnalysisExecutor:
 
         loop = asyncio.get_running_loop()
         future = loop.run_in_executor(
-            self._pool, get_operators, operator_request.input
+            self._pool, get_operators, operator_request
         )
 
         self._pending.add(future)
