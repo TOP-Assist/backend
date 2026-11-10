@@ -76,3 +76,9 @@ class AnalysisResult(BaseModel):
     text: str
     barriers: list[BarrierTokenHighlight] | None
     parlance: list[TokenHighlight] | None
+
+class OperatorRequest(BaseModel):
+    input: str
+
+class OperatorResult(BaseModel):
+    operators: list[str]

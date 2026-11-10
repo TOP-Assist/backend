@@ -4,10 +4,11 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """Service class for text analysis functionality."""
+from typing import Optional
 
 from limes import Sentence, Text
 from limes.analyzers.base import BaseAnalyzer
-from limes.parsers import Parser
+from limes.parsers import SpacyParser
 from limes.protocols import TokenProtocol
 
 from backend.analysis.schemas import (
@@ -20,7 +21,9 @@ from backend.parlance.schemas import ParlanceWord
 
 
 class AnalysisService:
-    def __init__(self, parser: Parser, analyzer: BaseAnalyzer) -> None:
+    _default_operators: list[str] = [] # TODO
+
+    def __init__(self, parser: SpacyParser, analyzer: BaseAnalyzer) -> None:
         self._parser = parser
         self._analyzer = analyzer
 
@@ -219,3 +222,17 @@ class AnalysisService:
             sentence_start + local_start,
             sentence_start + local_end,
         )
+
+    def get_operators(self, inp: str, operators: Optional[list[str]] = None)  -> list[str]:
+        if operators is None:
+            operators = self._default_operators
+
+        doc = self._parser._nlp(inp)
+        normalized_input = [
+            token.lemma_.lower()
+            for token in doc
+            if not (token.is_punct or token.is_space)
+        ]
+
+        return [i for i in normalized_input if i in operators]
+    

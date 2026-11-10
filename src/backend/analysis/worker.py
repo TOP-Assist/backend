@@ -6,8 +6,9 @@
 """
 Module for setting up each worker process.
 """
+from typing import Optional
 
-from backend.analysis.schemas import AnalysisResult, BarrierDescription
+from backend.analysis.schemas import AnalysisResult, BarrierDescription, OperatorResult
 from backend.analysis.service import AnalysisService
 from backend.parlance.schemas import ParlanceWord
 
@@ -53,3 +54,8 @@ def analyze_text(
 
 def get_barrier_definitions() -> list[BarrierDescription]:
     return get_service().get_barrier_definitions()
+
+
+def get_operators(inp: str, operators: Optional[list[str]] = None) -> OperatorResult:
+    operators = get_service().get_operators(inp, operators)
+    return OperatorResult(operators=operators)
