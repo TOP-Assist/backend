@@ -1,45 +1,61 @@
-from typing import Any, Optional
+from itertools import zip_longest
 
 from limes.analyzers.de import GermanAnalyzer
 from limes.parsers import SpacyParser
+from pydantic import BaseModel
 
 from backend.analysis.service import AnalysisService
-from backend.validation.schemas import ValidationResult
+from backend.validation.schemas import ValidationResult, ValidationRequest
 from backend.validation.service import ValidationService
 from backend.validation.validators.base import Validator
 
-NAME = "operator_consistency"
 
-@ValidationService.register(NAME, enabled=True)
+class OperatorConsistencyParametrization(BaseModel):
+    preserve_order: bool = True
+
+@ValidationService.register()
 class OperatorConsistency(Validator):
-    # TODO: Worker Queue Pattern?
-    _registry_name = NAME
-
+    # TODO: Use from context
     _analyzer = AnalysisService(
-        # TODO: Use from context
         parser=SpacyParser(model="de_dep_news_trf"),
         analyzer=GermanAnalyzer()
     )
 
-    async def run(self, inp: str, out: str, meta: Optional[dict[str, Any]]) -> ValidationResult:
-        input_operators = self._analyzer.get_operators(inp)
-        output_operators = self._analyzer.get_operators(out)
+    parametrization = OperatorConsistencyParametrization
 
-        matches = []
-        for i, inp_op in enumerate(input_operators):
-            if i >= len(out):
-                matches.append(False)
-            else:
-                matches.append(inp_op == output_operators[i])
+    def __init__(self, parametrization: OperatorConsistencyParametrization):
+        self.preserve_order = parametrization.preserve_order
 
-        score = sum(matches) / len(matches)
+    async def run(self, request: ValidationRequest) -> ValidationResult:
+        input_operators = self._analyzer.get_operators(request.input_text)
+        output_operators = self._analyzer.get_operators(request.output_text)
+
+        if self.preserve_order:
+            matches = [
+                inp_op == out_op
+                for inp_op, out_op
+                in zip_longest(input_operators, output_operators, fillvalue=None)
+            ]
+
+        else:
+            matches = []
+            for inp_op in input_operators:
+                try:
+                    out_op_idx = output_operators.index(inp_op)
+                    output_operators.pop(out_op_idx)
+                    matches.append(True)
+                except ValueError:
+                    matches.append(False)
+
+        score = sum(matches) / len(matches) if len(matches) > 0 else 0
 
         return ValidationResult(
-            metric=self._registry_name,
+            metric=self.__class__.__name__,
+            parameters=vars(self),
             score=score,
             meta = {
                 "matches": matches,
                 "input_operators": input_operators,
-                "output_operators": output_operators
+                "output_operators": output_operators,
             }
         )

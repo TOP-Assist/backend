@@ -1,12 +1,16 @@
 from abc import ABC, abstractmethod
-from typing import Any, Optional
 
-from backend.validation.schemas import ValidationResult
+from pydantic import BaseModel
+
+from backend.validation.schemas import ValidationResult, ValidationRequest
 
 
 class Validator(ABC):
-    _registry_name: str
+    parametrization: BaseModel
 
     @abstractmethod
-    async def run(self, inp: str, out: str, meta: Optional[dict[str, Any]]) -> ValidationResult:
+    async def run(self, request: ValidationRequest) -> ValidationResult:
         ...
+
+    def _params_to_dict(self) -> dict:
+        return self.parametrization.model_dump()

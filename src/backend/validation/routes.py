@@ -18,12 +18,8 @@ async def post_validation(
     body: ValidationRequest,
     service: ValidationServiceDep,
 ) -> TranslationValidation:
-    # TODO: Do we want to control metrics per-prompt? If not, this is not needed.
-    assert body.selected_validators == "all",\
-        "Selecting a subset of validators is not supported yet."
-
     try:
-        return await service.run(body.input_text, body.output_text)
+        return await service.run(body)
     except Exception as e: # TODO: Less generic
-        logger.warning(f"An error occured: {e}")
+        logger.warning(f"An error occurred: {e}")
         raise HTTPException(status_code=404, detail="An error occured") from e

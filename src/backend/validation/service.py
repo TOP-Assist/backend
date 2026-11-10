@@ -2,42 +2,63 @@
 # SPDX-FileCopyrightText: 2026 deepsight GmbH
 #
 # SPDX-License-Identifier: AGPL-3.0-or-later
-from typing import Callable, TypeVar, Any, Optional
+import json
+import logging
+from typing import Callable, TypeVar
 
-from backend.validation.schemas import ValidationResult, TranslationValidation
 from pymongo.asynchronous.collection import AsyncCollection
+
+from backend.validation.schemas import TranslationValidation, ValidationRequest
 from backend.validation.validators.base import Validator
+
+
+logger = logging.getLogger(__name__)
 
 ValidatorType = TypeVar("ValidatorType", bound=type[Validator])
 
 class ValidationService:
-    """Service for validating a translation after it was generated."""
-    _registry: dict[str, tuple[ValidatorType, bool]] = {}
+    """
+    Service for validating a translation after it was generated.
+
+    Each validator is registered to `self._registry` using the register decorator
+    and a unique identifier ("name") before initialization.
+
+    Upon initialization of the service, parametrized validators are initialized
+    from resources/validator_config.json.
+    """
+    _registry: dict[str, ValidatorType] = {}
 
     @classmethod
-    def register(cls, name: str, enabled: bool) -> Callable[[ValidatorType], ValidatorType]:
+    def register(cls) -> Callable[[ValidatorType], ValidatorType]:
         """Registry decorator, used to decorate validator metrics to include them in validation."""
         def decorator(validator_cls: ValidatorType) -> ValidatorType:
-            if name in cls._registry:
-                raise ValueError(f"Validator {name} already registered")
+            name = validator_cls.__name__
             if not issubclass(validator_cls, Validator):
-                raise TypeError(f"Validator {name} must be a subclass of Validator")
+                logger.error(f"Validator {name} must be a subclass of Validator")
 
-            cls._registry[name] = (validator_cls, enabled)
+            cls._registry[name] = validator_cls
             return validator_cls
 
         return decorator
 
     def __init__(self, collection: AsyncCollection):
-        self.validators: dict[str, Validator] = {
-            validator_name: validator()
-            for validator_name, (validator, enabled) in self._registry.items() if enabled
-        }
         self._collection = collection
 
-    async def run(self, inp: str, out: str, meta: Optional[dict[str, Any]] = None) -> TranslationValidation:
+        with open("src/backend/validation/resources/validator_config.json", "r") as f:
+            validator_config = json.load(f)
+
+        self.validators = {}
+        for k, v in validator_config.items():
+            validator_id = v.pop("validator_id")
+            if validator_id not in self._registry:
+                logging.error(f"Validator {validator_id} not found in registry.")
+                continue
+            validator_cls = self._registry[validator_id]
+            self.validators[k] = validator_cls(validator_cls.parametrization(**v))
+
+    async def run(self, request: ValidationRequest) -> TranslationValidation:
         results = {
-            validator_name: await validator.run(inp, out, meta)
+            validator_name: await validator.run(request)
             for validator_name, validator in self.validators.items()
         }
 
