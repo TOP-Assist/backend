@@ -7,6 +7,14 @@ This repository contains the backend to the TOP Assist text optimization tool.
 ## Setup
 
 This project is [uv](https://docs.astral.sh/uv)-managed. To sync with linter support, run `uv sync --group lint`.
+
+We use [pre-commit](https://pre-commit.com) to lint files and commit messages before each commit. Install the hooks once after cloning:
+
+```bash
+uv sync --group lint
+uv run pre-commit install
+```
+
 We ship an example environment file (`.env.example`), based on which you may create a `.env` file and fill out relevant variables.
 Please note that the application will not launch without a properly provided `.env` file.
 
