@@ -4,6 +4,15 @@ version = 1
 # configuration without comment support, and LLM prompts, which are sent to
 # the model verbatim.
 [[annotations]]
-path = [".python-version", "uv.lock", "src/backend/translation/prompts/**"]
-SPDX-FileCopyrightText = ["2026 deepsight GmbH", "2026 Bergische Universität Wuppertal"]
+path = [
+    ".python-version",
+    ".gitignore",
+    ".prettierrc",
+    "uv.lock",
+    "src/backend/translation/prompts/**",
+]
+SPDX-FileCopyrightText = [
+    "2026 deepsight GmbH",
+    "2026 Bergische Universität Wuppertal",
+]
 SPDX-License-Identifier = "AGPL-3.0-or-later"
