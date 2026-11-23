@@ -4,41 +4,41 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 services:
-  backend:
-    restart: on-failure
-    build:
-      context: .
-      dockerfile: Containerfile
-    ports:
-      - 8000:8000
-    env_file: .env
-    environment:
-      - LOG_LEVEL=DEBUG
-      - OTEL_EXPORTER_OTLP_ENDPOINT=http://lgtm:4317
-      - MONGODB_HOST=mongo
-      - MONGODB_USERNAME=${MONGO_USER:-root_user}
-      - MONGODB_PASSWORD=${MONGO_PASSWORD:-password}
-      - MONGODB_DATABASE=top_assist
-      - ANALYSIS_NUM_WORKERS=1
-      # LLM access variables are in unversioned .env for security.
-      - LLM_TEMPERATURE=0.0
-    depends_on:
-      - mongo
-      - lgtm
-  mongo:
-    image: docker.io/mongo:9.0.2
-    ports:
-      - 127.0.0.1:27017:27017
-    environment:
-      MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-root_user}
-      MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-password}
-    volumes:
-      - mongo-data:/data/db
-  lgtm:
-    image: docker.io/grafana/otel-lgtm:0.38.1
-    ports:
-      - 127.0.0.1:3000:3000
-      - 127.0.0.1:4317:4317
+    backend:
+        restart: on-failure
+        build:
+            context: .
+            dockerfile: Containerfile
+        ports:
+            - 8000:8000
+        env_file: .env
+        environment:
+            - LOG_LEVEL=DEBUG
+            - OTEL_EXPORTER_OTLP_ENDPOINT=http://lgtm:4317
+            - MONGODB_HOST=mongo
+            - MONGODB_USERNAME=${MONGO_USER:-root_user}
+            - MONGODB_PASSWORD=${MONGO_PASSWORD:-password}
+            - MONGODB_DATABASE=top_assist
+            - ANALYSIS_NUM_WORKERS=1
+            # LLM access variables are in unversioned .env for security.
+            - LLM_TEMPERATURE=0.0
+        depends_on:
+            - mongo
+            - lgtm
+    mongo:
+        image: docker.io/mongo:9.0.2
+        ports:
+            - 127.0.0.1:27017:27017
+        environment:
+            MONGO_INITDB_ROOT_USERNAME: ${MONGODB_USERNAME:-root_user}
+            MONGO_INITDB_ROOT_PASSWORD: ${MONGODB_PASSWORD:-password}
+        volumes:
+            - mongo-data:/data/db
+    lgtm:
+        image: docker.io/grafana/otel-lgtm:0.38.1
+        ports:
+            - 127.0.0.1:3000:3000
+            - 127.0.0.1:4317:4317
 
 volumes:
-  mongo-data:
+    mongo-data:
