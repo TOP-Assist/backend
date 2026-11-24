@@ -1,4 +1,9 @@
-from typing import Any, Optional
+# SPDX-FileCopyrightText: 2026 Bergische Universität Wuppertal
+# SPDX-FileCopyrightText: 2026 deepsight GmbH
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -12,6 +17,7 @@ class ValidationRequest(BaseModel):
         ...,
         description="The resulting translation for the input task.",
     )
+
 
 class ValidationResult(BaseModel):
     """Translation Validation Result for a single metric"""
@@ -33,11 +39,13 @@ class ValidationResult(BaseModel):
 
     meta: dict[str, Any] = Field(
         ...,
-        description="Additional metadata that might be relevant for a specific evaluation metric."
+        description="Additional metadata that might be relevant for a specific evaluation metric.",
     )
+
 
 class TranslationValidation(BaseModel):
     """Translation Validation Result for all metrics for one Translation"""
+
     results: dict[str, ValidationResult] = Field(default_factory=dict)
-    translation_id: Optional[str] = None  # TODO: Is this stored?
-    inserted_id: Optional[str] = None
+    translation_id: str | None = None  # TODO: Is this stored?
+    inserted_id: str | None = None

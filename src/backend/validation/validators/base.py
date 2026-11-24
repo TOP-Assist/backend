@@ -1,26 +1,32 @@
-from abc import ABC, abstractmethod
-from typing import Optional, Self, Generic, TypeVar
+# SPDX-FileCopyrightText: 2026 Bergische Universität Wuppertal
+# SPDX-FileCopyrightText: 2026 deepsight GmbH
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
 
-from backend.analysis.executor import AnalysisExecutor
+from abc import ABC, abstractmethod
+from typing import Generic, Self, TypeVar
+
 from pydantic import BaseModel
 
-from backend.validation.schemas import ValidationResult, ValidationRequest
+from backend.analysis.executor import AnalysisExecutor
+from backend.validation.schemas import ValidationRequest, ValidationResult
 
 
 class ValidatorParametrization(BaseModel):
     pass
 
+
 P = TypeVar("P", bound=ValidatorParametrization)
 
-class Validator(ABC, Generic[P]):
+
+class Validator(ABC, Generic[P]):  # noqa: UP046
     _parametrization: P
 
     def __init__(self, parametrization: ValidatorParametrization):
         self.parametrization = parametrization
 
     @abstractmethod
-    async def run(self, request: ValidationRequest) -> ValidationResult:
-        ...
+    async def run(self, request: ValidationRequest) -> ValidationResult: ...
 
     @classmethod
     def create(
