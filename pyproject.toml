@@ -32,6 +32,12 @@ dependencies = [
     "opentelemetry-instrumentation-logging>=0.66b1",
 ]
 
+[dependency-groups]
+lint = [
+    "ruff>=0.17.5",
+    "pre-commit>=4.7.0",
+]
+
 [project.scripts]
 backend = "backend:main"
 
@@ -72,3 +78,6 @@ line-length = 80
 quote-style = "double"
 indent-style = "space"
 docstring-code-format = true
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]

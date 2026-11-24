@@ -6,7 +6,15 @@ This repository contains the backend to the TOP Assist text optimization tool.
 
 ## Setup
 
-This project is [uv](https://docs.astral.sh/uv)-managed.
+This project is [uv](https://docs.astral.sh/uv)-managed. To sync with linter support, run `uv sync --group lint`.
+
+We use [pre-commit](https://pre-commit.com) to lint files and commit messages before each commit. Install the hooks once after cloning:
+
+```bash
+uv sync --group lint
+uv run pre-commit install
+```
+
 We ship an example environment file (`.env.example`), based on which you may create a `.env` file and fill out relevant variables.
 Please note that the application will not launch without a properly provided `.env` file.
 
@@ -103,7 +111,7 @@ The OTLP port `4317` is published on `127.0.0.1` only, so a natively running bac
 
 Keep in mind that barrier analysis has its own worker pool, each with a somewhat chunky transformer-based spaCy model loaded into RAM.
 Moreover, **each fastAPI worker has its own barrier analysis worker pool**.
-This means that _n_ fastAPI workers with _m_ barrier analysis workers will lead to _n * m_ spaCy models loaded into RAM.
+This means that _n_ fastAPI workers with _m_ barrier analysis workers will lead to _n \* m_ spaCy models loaded into RAM.
 Adjust your configuration to avoid extraneous RAM usage.
 
 ### Separate service from observability
