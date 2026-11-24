@@ -15,6 +15,7 @@ from backend.analysis.schemas import (
     AnalysisResult,
     BarrierDescription,
     BarrierTokenHighlight,
+    OperatorDescription,
     OperatorRequest,
     OperatorResult,
     TokenHighlight,
@@ -27,17 +28,25 @@ class AnalysisService:
         self._parser = parser
         self._analyzer = analyzer
 
-        default_operators: list[str] = (
+        # TODO: This will be migrated to MongoDB soon
+        operators: list[tuple[str, str]] = (
             pl.read_csv(
                 "src/backend/analysis/resources/operators.csv", separator=";"
             )
-            .get_column("Operator")
-            .to_list()
+            .select("Operator", "Definition")
+            .rows()
         )
 
-        self._default_operators = [
+        self.operators: list[OperatorDescription] = [
+            OperatorDescription(operator=operator, definition=definition)
+            for (operator, definition) in operators
+        ]
+
+        self._operators_lemmatized = [
             operator.lemma_.lower()
-            for operator in self._parser._nlp(" ".join(default_operators))
+            for operator in self._parser._nlp(
+                " ".join(operator for (operator, _) in operators)
+            )
         ]
 
     def get_barrier_definitions(self) -> list[BarrierDescription]:
@@ -238,7 +247,7 @@ class AnalysisService:
 
     def get_operators(self, request: OperatorRequest) -> OperatorResult:
         operators = (
-            self._default_operators
+            self._operators_lemmatized
             if request.operators is None
             else request.operators
         )
@@ -258,3 +267,6 @@ class AnalysisService:
                     )
                 )
         return OperatorResult(operators=lemmas, occurrences=occurrences)
+
+    def get_operator_descriptions(self) -> list[OperatorDescription]:
+        return self.operators

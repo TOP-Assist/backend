@@ -19,6 +19,11 @@ class BarrierDescription(BaseModel):
     description: str
 
 
+class OperatorDescription(BaseModel):
+    operator: str
+    definition: str
+
+
 class TokenHighlight(BaseModel):
     """
     A token to be highlighted in a given source text.

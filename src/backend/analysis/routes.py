@@ -12,7 +12,10 @@ from backend.analysis.errors import AnalysisBusyError
 from backend.analysis.schemas import (
     AnalysisRequest,
     AnalysisResult,
-    BarrierDescription, OperatorRequest, OperatorResult,
+    BarrierDescription,
+    OperatorDescription,
+    OperatorRequest,
+    OperatorResult,
 )
 
 router = APIRouter(prefix="/analysis", tags=["analysis"])
@@ -47,14 +50,15 @@ def get_barrier_definitions(
 ) -> list[BarrierDescription]:
     return executor.get_barrier_definitions()
 
+
 @router.post(
     "/operators",
     responses={
         503: {"description": "Analysis workers are currently at capacity."}
-    },)
+    },
+)
 async def get_operators(
-    executor: AnalysisExecutorDep,
-    body: OperatorRequest
+    executor: AnalysisExecutorDep, body: OperatorRequest
 ) -> OperatorResult:
     try:
         return await executor.get_operators(body)
@@ -63,3 +67,10 @@ async def get_operators(
             status_code=503,
             detail="Analysis is currently at capacity. Please retry.",
         ) from exc
+
+
+@router.get("/operators")
+async def get_operator_definitions(
+    executor: AnalysisExecutorDep,
+) -> list[OperatorDescription]:
+    return executor.get_operator_descriptions()

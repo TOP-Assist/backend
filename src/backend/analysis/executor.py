@@ -13,8 +13,19 @@ from concurrent.futures import ProcessPoolExecutor
 from typing import Self
 
 from backend.analysis.errors import AnalysisBusyError
-from backend.analysis.schemas import AnalysisResult, BarrierDescription, OperatorRequest, OperatorResult
-from backend.analysis.worker import analyze_text, get_barrier_definitions, get_operators
+from backend.analysis.schemas import (
+    AnalysisResult,
+    BarrierDescription,
+    OperatorDescription,
+    OperatorRequest,
+    OperatorResult,
+)
+from backend.analysis.worker import (
+    analyze_text,
+    get_barrier_definitions,
+    get_operator_descriptions,
+    get_operators,
+)
 from backend.parlance.schemas import ParlanceWord
 
 
@@ -42,6 +53,7 @@ class AnalysisExecutor:
         self,
         pool: ProcessPoolExecutor,
         barrier_definitions: list[BarrierDescription],
+        operator_descriptions: list[OperatorDescription],
         *,
         max_outstanding: int = 2,
     ) -> None:
@@ -55,6 +67,10 @@ class AnalysisExecutor:
             definition.model_copy(deep=True)
             for definition in barrier_definitions
         )
+        self._operator_descriptions: list[OperatorDescription] = [
+            description.model_copy(deep=True)
+            for description in operator_descriptions
+        ]
 
     @classmethod
     async def create(
@@ -69,8 +85,9 @@ class AnalysisExecutor:
         need for the creating function to know domain-specific details.
         """
         loop = asyncio.get_running_loop()
-        definitions = await loop.run_in_executor(pool, get_barrier_definitions)
-        return cls(pool, definitions, max_outstanding=max_outstanding)
+        barriers = await loop.run_in_executor(pool, get_barrier_definitions)
+        operators = await loop.run_in_executor(pool, get_operator_descriptions)
+        return cls(pool, barriers, operators, max_outstanding=max_outstanding)
 
     async def analyze(
         self,
@@ -101,7 +118,9 @@ class AnalysisExecutor:
             for definition in self._barrier_definitions
         ]
 
-    async def get_operators(self, operator_request: OperatorRequest) -> OperatorResult:
+    async def get_operators(
+        self, operator_request: OperatorRequest
+    ) -> OperatorResult:
         """Return operators found in a string"""
         if len(self._pending) >= self._max_outstanding:
             raise AnalysisBusyError("Analysis capacity is exhausted")
@@ -117,6 +136,12 @@ class AnalysisExecutor:
         # Request cancellation must not release capacity while the
         # subprocess is still executing the analysis.
         return await asyncio.shield(future)
+
+    def get_operator_descriptions(self) -> list[OperatorDescription]:
+        return [
+            operator.model_copy(deep=True)
+            for operator in self._operator_descriptions
+        ]
 
     def _on_done(
         self,
