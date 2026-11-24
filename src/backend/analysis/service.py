@@ -4,10 +4,8 @@
 # SPDX-License-Identifier: AGPL-3.0-or-later
 
 """Service class for text analysis functionality."""
-from typing import Optional
 
 import polars as pl
-
 from limes import Sentence, Text
 from limes.analyzers.base import BaseAnalyzer
 from limes.parsers import SpacyParser
@@ -17,7 +15,9 @@ from backend.analysis.schemas import (
     AnalysisResult,
     BarrierDescription,
     BarrierTokenHighlight,
-    TokenHighlight, OperatorRequest, OperatorResult,
+    OperatorRequest,
+    OperatorResult,
+    TokenHighlight,
 )
 from backend.parlance.schemas import ParlanceWord
 
@@ -28,12 +28,17 @@ class AnalysisService:
         self._analyzer = analyzer
 
         default_operators: list[str] = (
-            pl.read_csv("src/backend/analysis/resources/operators.csv", separator=";")
+            pl.read_csv(
+                "src/backend/analysis/resources/operators.csv", separator=";"
+            )
             .get_column("Operator")
             .to_list()
         )
 
-        self._default_operators = [operator.lemma_.lower() for operator in self._parser._nlp(" ".join(default_operators))]
+        self._default_operators = [
+            operator.lemma_.lower()
+            for operator in self._parser._nlp(" ".join(default_operators))
+        ]
 
     def get_barrier_definitions(self) -> list[BarrierDescription]:
         """
@@ -231,16 +236,25 @@ class AnalysisService:
             sentence_start + local_end,
         )
 
-    def get_operators(self, request: OperatorRequest)  -> OperatorResult:
-        operators = self._default_operators if request.operators is None else request.operators
-
-        doc = self._parser._nlp(request.input)
-        normalized_input = [
-            token.lemma_.lower()
-            for token in doc
-            if not (token.is_punct or token.is_space)
-        ]
-
-        out = [i for i in normalized_input if i in operators]
-
-        return OperatorResult(operators=out)
+    def get_operators(self, request: OperatorRequest) -> OperatorResult:
+        operators = (
+            self._default_operators
+            if request.operators is None
+            else request.operators
+        )
+        lemmas = []
+        occurrences = []
+        for token in self._parser._nlp(request.input):
+            if token.is_punct or token.is_space:
+                continue
+            lemma = token.lemma_.lower()
+            if lemma in operators:
+                lemmas.append(lemma)
+                occurrences.append(
+                    TokenHighlight(
+                        token=token.text,
+                        start=token.idx,
+                        end=token.idx + len(token.text),
+                    )
+                )
+        return OperatorResult(operators=lemmas, occurrences=occurrences)

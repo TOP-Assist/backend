@@ -5,7 +5,7 @@
 
 """Object definitions for text analysis functionality."""
 
-from typing import Self, Optional
+from typing import Self
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -77,18 +77,24 @@ class AnalysisResult(BaseModel):
     barriers: list[BarrierTokenHighlight] | None
     parlance: list[TokenHighlight] | None
 
+
 class OperatorRequest(BaseModel):
     input: str = Field(
         ...,
         description="The input text in which the Operators should be identified.",
     )
-    operators: Optional[list[str]] = Field(
+    operators: list[str] | None = Field(
         None,
-        description="An optional set of operators for which the search should be performed. Will be lemmatized automatically."
+        description="An optional set of operators for which the search should be performed. Will be lemmatized automatically.",
     )
+
 
 class OperatorResult(BaseModel):
     operators: list[str] = Field(
+        ..., description="Resulting list of operators found in a given input."
+    )
+
+    occurrences: list[TokenHighlight] = Field(
         ...,
-        description="Resulting list of operators found in a given input."
+        description="Highlighting indicators for Operators in a given input.s",
     )
