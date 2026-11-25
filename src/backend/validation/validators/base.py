@@ -22,7 +22,7 @@ P = TypeVar("P", bound=ValidatorParametrization)
 class Validator(ABC, Generic[P]):  # noqa: UP046
     _parametrization: P
 
-    def __init__(self, parametrization: ValidatorParametrization):
+    def __init__(self, parametrization: P):
         self.parametrization = parametrization
 
     @abstractmethod

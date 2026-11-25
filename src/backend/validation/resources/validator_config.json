@@ -1,10 +1,20 @@
 {
-  "operator_consistency_with_order": {
-    "validator_id": "OperatorConsistency",
-    "preserve_order": true
-  },
-  "operator_consistency_without_order": {
-    "validator_id": "OperatorConsistency",
-    "preserve_order": false
-  }
+    "operator_consistency_decision_model_with_order": {
+        "validator_id": "OperatorConsistency",
+        "preserve_order": true
+    },
+    "operator_consistency_decision_model_without_order": {
+        "validator_id": "OperatorConsistency",
+        "preserve_order": false
+    },
+    "operator_consistency_deterministic_with_order": {
+        "validator_id": "OperatorConsistency",
+        "preserve_order": true,
+        "use_decision_model": false
+    },
+    "operator_consistency_deterministic_without_order": {
+        "validator_id": "OperatorConsistency",
+        "preserve_order": false,
+        "use_decision_model": false
+    }
 }

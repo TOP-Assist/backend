@@ -251,6 +251,7 @@ class AnalysisService:
             if request.operators is None
             else request.operators
         )
+        operators_ = []
         lemmas = []
         occurrences = []
         for token in self._parser._nlp(request.input):
@@ -258,6 +259,7 @@ class AnalysisService:
                 continue
             lemma = token.lemma_.lower()
             if lemma in operators:
+                operators_.append(token.text)
                 lemmas.append(lemma)
                 occurrences.append(
                     TokenHighlight(
@@ -266,7 +268,11 @@ class AnalysisService:
                         end=token.idx + len(token.text),
                     )
                 )
-        return OperatorResult(operators=lemmas, occurrences=occurrences)
+        return OperatorResult(
+            operators=operators_,
+            operators_lemmatized=lemmas,
+            occurrences=occurrences,
+        )
 
     def get_operator_descriptions(self) -> list[OperatorDescription]:
         return self.operators

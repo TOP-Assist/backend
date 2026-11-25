@@ -99,6 +99,11 @@ class OperatorResult(BaseModel):
         ..., description="Resulting list of operators found in a given input."
     )
 
+    operators_lemmatized: list[str] = Field(
+        ...,
+        description="Resulting list of operator-lemmas found in a given input.",
+    )
+
     occurrences: list[TokenHighlight] = Field(
         ...,
         description="Highlighting indicators for Operators in a given input.s",

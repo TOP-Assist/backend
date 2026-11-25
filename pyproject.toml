@@ -32,6 +32,7 @@ dependencies = [
     "opentelemetry-exporter-otlp-proto-grpc>=1.45.1",
     "opentelemetry-instrumentation-logging>=0.66b1",
     "polars>=2.1.0",
+    "typesafe-sdk>=0.7.5",
 ]
 
 [dependency-groups]
