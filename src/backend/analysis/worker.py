@@ -7,6 +7,9 @@
 Module for setting up each worker process.
 """
 
+from limes.parsers.lemmatizers import HanTaLemmatizer
+from limes.parsers.lemmatizers.hanta.de import STTS_TO_HANTA_GERMAN
+
 from backend.analysis.schemas import (
     AnalysisResult,
     BarrierDescription,
@@ -34,7 +37,10 @@ def initialize_worker(model_name: str):
     spacy.require_cpu()  # pyright: ignore[reportPrivateImportUsage]
 
     _service = AnalysisService(
-        parser=SpacyParser(model=model_name),
+        parser=SpacyParser(
+            model=model_name,
+            lemmatizer=HanTaLemmatizer.from_preset(STTS_TO_HANTA_GERMAN),
+        ),
         analyzer=GermanAnalyzer(),
     )
 

@@ -88,10 +88,6 @@ class OperatorRequest(BaseModel):
         ...,
         description="The input text in which the Operators should be identified.",
     )
-    operators: list[str] | None = Field(
-        None,
-        description="An optional set of operators for which the search should be performed. Will be lemmatized automatically.",
-    )
 
 
 class OperatorResult(BaseModel):

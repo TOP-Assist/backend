@@ -10,6 +10,7 @@ from limes import Sentence, Text
 from limes.analyzers.base import BaseAnalyzer
 from limes.parsers import SpacyParser
 from limes.protocols import TokenProtocol
+from nltk import Cistem
 
 from backend.analysis.schemas import (
     AnalysisResult,
@@ -24,6 +25,8 @@ from backend.parlance.schemas import ParlanceWord
 
 
 class AnalysisService:
+    stemmer = Cistem()
+
     def __init__(self, parser: SpacyParser, analyzer: BaseAnalyzer) -> None:
         self._parser = parser
         self._analyzer = analyzer
@@ -43,10 +46,15 @@ class AnalysisService:
         ]
 
         self._operators_lemmatized = [
-            operator.lemma_.lower()
-            for operator in self._parser._nlp(
-                " ".join(operator for (operator, _) in operators)
+            token.lemma_.casefold()
+            for doc in self._parser._nlp.pipe(
+                op.operator for op in self.operators
             )
+            for token in doc
+        ]
+
+        self._operators_stemmed = [
+            self.stemmer.stem(op) for op in self._operators_lemmatized
         ]
 
     def get_barrier_definitions(self) -> list[BarrierDescription]:
@@ -246,26 +254,24 @@ class AnalysisService:
         )
 
     def get_operators(self, request: OperatorRequest) -> OperatorResult:
-        operators = (
-            self._operators_lemmatized
-            if request.operators is None
-            else request.operators
-        )
         operators_ = []
         lemmas = []
         occurrences = []
-        for token in self._parser._nlp(request.input):
-            if token.is_punct or token.is_space:
+        for token in self._parser(request.input):
+            if token.is_punct or token.text.isspace():
                 continue
-            lemma = token.lemma_.lower()
-            if lemma in operators:
+            lemma = token.lemma_.casefold()
+            if lemma in self._operators_lemmatized or (
+                self.stemmer.stem(lemma) in self._operators_stemmed
+                and token.pos_ == "VERB"
+            ):
                 operators_.append(token.text)
                 lemmas.append(lemma)
                 occurrences.append(
                     TokenHighlight(
                         token=token.text,
-                        start=token.idx,
-                        end=token.idx + len(token.text),
+                        start=token._token.idx,
+                        end=token._token.idx + len(token.text),
                     )
                 )
         return OperatorResult(
