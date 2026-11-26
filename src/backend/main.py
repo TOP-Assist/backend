@@ -20,7 +20,6 @@ from backend.analysis.executor import AnalysisExecutor
 from backend.analysis.routes import router as analysis_router
 from backend.analysis.worker import initialize_worker
 from backend.config import Settings
-from backend.feedback.routes import router as feedback_router
 from backend.logging import configure_logging
 from backend.parlance.routes import router as parlance_router
 from backend.telemetry import (
@@ -124,8 +123,6 @@ async def health() -> dict[str, str]:
 
 
 app.include_router(analysis_router, prefix=API_PREFIX)
-app.include_router(feedback_router, prefix=API_PREFIX)
 app.include_router(parlance_router, prefix=API_PREFIX)
 app.include_router(translation_router, prefix=API_PREFIX)
-
 app.include_router(validation_router, prefix=API_PREFIX)
