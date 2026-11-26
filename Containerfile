@@ -5,6 +5,10 @@
 
 FROM docker.io/library/python:3.14-slim-trixie
 
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends git git-lfs ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY --from=ghcr.io/astral-sh/uv:0.12.23 /uv /usr/local/bin/uv
 
 ENV PYTHONUNBUFFERED=1 \
@@ -14,16 +18,16 @@ ENV PYTHONUNBUFFERED=1 \
 WORKDIR /app
 
 # Install dependencies separately to cache them across source changes.
-COPY pyproject.toml uv.lock ./
-RUN uv sync --locked --no-dev --no-install-project --no-cache
+COPY pyproject.toml uv.lock README.md ./
+COPY LICENSES/ ./LICENSES/
+# Hatchling can read project metadata during either sync. CI supplies VERSION
+# because .git is excluded from the build context.
+ARG VERSION=0.0.0+local
+RUN UV_DYNAMIC_VERSIONING_BYPASS="${VERSION}" \
+    uv sync --locked --no-dev --no-install-project --no-cache
 
 # Install the application as a regular, non-editable package.
-COPY README.md ./
-COPY LICENSES/ ./LICENSES/
 COPY src/ ./src/
-# .git is not part of the build context, so the package version cannot be read
-# from the git tag here. CI passes it in as VERSION (see README, "Releases").
-ARG VERSION=0.0.0+local
 RUN UV_DYNAMIC_VERSIONING_BYPASS="${VERSION}" \
     uv sync --locked --no-dev --no-editable --no-cache
 

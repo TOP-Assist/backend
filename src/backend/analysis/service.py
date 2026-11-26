@@ -5,24 +5,57 @@
 
 """Service class for text analysis functionality."""
 
+import polars as pl
 from limes import Sentence, Text
 from limes.analyzers.base import BaseAnalyzer
-from limes.parsers import Parser
+from limes.parsers import SpacyParser
 from limes.protocols import TokenProtocol
+from nltk import Cistem
 
 from backend.analysis.schemas import (
     AnalysisResult,
     BarrierDescription,
     BarrierTokenHighlight,
+    OperatorDescription,
+    OperatorRequest,
+    OperatorResult,
     TokenHighlight,
 )
 from backend.parlance.schemas import ParlanceWord
 
 
 class AnalysisService:
-    def __init__(self, parser: Parser, analyzer: BaseAnalyzer) -> None:
+    stemmer = Cistem()
+
+    def __init__(self, parser: SpacyParser, analyzer: BaseAnalyzer) -> None:
         self._parser = parser
         self._analyzer = analyzer
+
+        # TODO: This will be migrated to MongoDB soon
+        operators: list[tuple[str, str]] = (
+            pl.read_csv(
+                "src/backend/analysis/resources/operators.csv", separator=";"
+            )
+            .select("Operator", "Definition")
+            .rows()
+        )
+
+        self.operators: list[OperatorDescription] = [
+            OperatorDescription(operator=operator, definition=definition)
+            for (operator, definition) in operators
+        ]
+
+        self._operators_lemmatized = [
+            token.lemma_.casefold()
+            for doc in self._parser._nlp.pipe(
+                op.operator for op in self.operators
+            )
+            for token in doc
+        ]
+
+        self._operators_stemmed = [
+            self.stemmer.stem(op) for op in self._operators_lemmatized
+        ]
 
     def get_barrier_definitions(self) -> list[BarrierDescription]:
         """
@@ -219,3 +252,33 @@ class AnalysisService:
             sentence_start + local_start,
             sentence_start + local_end,
         )
+
+    def get_operators(self, request: OperatorRequest) -> OperatorResult:
+        operators_ = []
+        lemmas = []
+        occurrences = []
+        for token in self._parser(request.input):
+            if token.is_punct or token.text.isspace():
+                continue
+            lemma = token.lemma_.casefold()
+            if lemma in self._operators_lemmatized or (
+                self.stemmer.stem(lemma) in self._operators_stemmed
+                and token.pos_ == "VERB"
+            ):
+                operators_.append(token.text)
+                lemmas.append(lemma)
+                occurrences.append(
+                    TokenHighlight(
+                        token=token.text,
+                        start=token._token.idx,
+                        end=token._token.idx + len(token.text),
+                    )
+                )
+        return OperatorResult(
+            operators=operators_,
+            operators_lemmatized=lemmas,
+            occurrences=occurrences,
+        )
+
+    def get_operator_descriptions(self) -> list[OperatorDescription]:
+        return self.operators

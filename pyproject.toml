@@ -14,11 +14,12 @@ readme = "README.md"
 authors = [
     { name = "Miguel Alves Gomes", email = "alvesgomes@uni-wuppertal.de" },
     { name = "Jannik Schmitt", email = "jannik.schmitt@deepsight.de" },
+    { name = "David Schischke", email = "schischke@uni-wuppertal.de" },
 ]
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.142.4",
-    "lang-limes>=0.1.4",
+    "lang-limes[hanta]>=0.1.4",
     "pydantic-settings>=2.15.0",
     "pymongo>=4.18.2",
     "uvicorn>=0.54.0",
@@ -30,6 +31,9 @@ dependencies = [
     "opentelemetry-instrumentation-pymongo>=0.66b1",
     "opentelemetry-exporter-otlp-proto-grpc>=1.45.1",
     "opentelemetry-instrumentation-logging>=0.66b1",
+    "polars>=2.1.0",
+    "typesafe-sdk>=0.7.5",
+    "nltk>=3.10.4",
 ]
 
 [dependency-groups]
@@ -65,6 +69,7 @@ cache-keys = [{ file = "pyproject.toml" }, { git = { commit = true, tags = true 
 [tool.uv.sources]
 torch = [{ index = "pytorch-cpu" }]
 de-dep-news-trf = { url = "https://github.com/explosion/spacy-models/releases/download/de_dep_news_trf-3.8.0/de_dep_news_trf-3.8.0-py3-none-any.whl" }
+lang-limes = { git = "https://codeberg.org/deepsight/LIMES.git" , lfs = true}
 
 [[tool.uv.index]]
 name = "pytorch-cpu"

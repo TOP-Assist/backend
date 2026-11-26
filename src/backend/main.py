@@ -31,6 +31,7 @@ from backend.telemetry import (
 from backend.translation.client import OpenAICompatibleTranslationClient
 from backend.translation.routes import router as translation_router
 from backend.translation.service import TranslationService
+from backend.validation.routes import router as validation_router
 
 API_PREFIX = "/v1"
 
@@ -126,3 +127,5 @@ app.include_router(analysis_router, prefix=API_PREFIX)
 app.include_router(feedback_router, prefix=API_PREFIX)
 app.include_router(parlance_router, prefix=API_PREFIX)
 app.include_router(translation_router, prefix=API_PREFIX)
+
+app.include_router(validation_router, prefix=API_PREFIX)

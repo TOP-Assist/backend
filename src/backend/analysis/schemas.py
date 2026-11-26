@@ -19,6 +19,11 @@ class BarrierDescription(BaseModel):
     description: str
 
 
+class OperatorDescription(BaseModel):
+    operator: str
+    definition: str
+
+
 class TokenHighlight(BaseModel):
     """
     A token to be highlighted in a given source text.
@@ -76,3 +81,26 @@ class AnalysisResult(BaseModel):
     text: str
     barriers: list[BarrierTokenHighlight] | None
     parlance: list[TokenHighlight] | None
+
+
+class OperatorRequest(BaseModel):
+    input: str = Field(
+        ...,
+        description="The input text in which the Operators should be identified.",
+    )
+
+
+class OperatorResult(BaseModel):
+    operators: list[str] = Field(
+        ..., description="Resulting list of operators found in a given input."
+    )
+
+    operators_lemmatized: list[str] = Field(
+        ...,
+        description="Resulting list of operator-lemmas found in a given input.",
+    )
+
+    occurrences: list[TokenHighlight] = Field(
+        ...,
+        description="Highlighting indicators for Operators in a given input.s",
+    )

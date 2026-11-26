@@ -5,6 +5,7 @@
 
 services:
     backend:
+        container_name: backend
         restart: on-failure
         build:
             context: .
@@ -25,7 +26,9 @@ services:
         depends_on:
             - mongo
             - lgtm
+            - decision_model
     mongo:
+        container_name: mongo
         image: docker.io/mongo:9.0.2
         ports:
             - 127.0.0.1:27017:27017
@@ -35,10 +38,28 @@ services:
         volumes:
             - mongo-data:/data/db
     lgtm:
+        container_name: lgtm
         image: docker.io/grafana/otel-lgtm:0.38.1
         ports:
             - 127.0.0.1:3000:3000
             - 127.0.0.1:4317:4317
+    decision_model:
+        container_name: decision_model
+        image: ghcr.io/ggml-org/llama.cpp:server
+        restart: unless-stopped
+        environment:
+            LLAMA_ARG_HF_REPO: ggml-org/Kev-0.8B-GGUF:BF16
+            LLAMA_ARG_HOST: '0.0.0.0'
+            LLAMA_ARG_PORT: '8009'
+            LLAMA_CACHE: /models
+        volumes:
+            - decision-models:/models
 
 volumes:
     mongo-data:
+    decision-models:
+
+networks:
+    default:
+        name: top-assist-network
+        driver: bridge
