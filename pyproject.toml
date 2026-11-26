@@ -14,6 +14,7 @@ readme = "README.md"
 authors = [
     { name = "Miguel Alves Gomes", email = "alvesgomes@uni-wuppertal.de" },
     { name = "Jannik Schmitt", email = "jannik.schmitt@deepsight.de" },
+    { name = "David Schischke", email = "schischke@uni-wuppertal.de" },
 ]
 requires-python = ">=3.13"
 dependencies = [
@@ -30,6 +31,13 @@ dependencies = [
     "opentelemetry-instrumentation-pymongo>=0.66b1",
     "opentelemetry-exporter-otlp-proto-grpc>=1.45.1",
     "opentelemetry-instrumentation-logging>=0.66b1",
+    "polars>=2.1.0",
+]
+
+[dependency-groups]
+lint = [
+    "ruff>=0.17.5",
+    "pre-commit>=4.7.0",
 ]
 
 [project.scripts]
@@ -72,3 +80,6 @@ line-length = 80
 quote-style = "double"
 indent-style = "space"
 docstring-code-format = true
+
+[tool.ruff.lint.per-file-ignores]
+"__init__.py" = ["F401"]

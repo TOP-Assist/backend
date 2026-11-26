@@ -18,6 +18,8 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
+        # Treat `KEY=` (as in .env.example) as unset so code defaults apply.
+        env_ignore_empty=True,
         frozen=True,
         hide_input_in_errors=True,
     )

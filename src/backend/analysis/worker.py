@@ -7,7 +7,13 @@
 Module for setting up each worker process.
 """
 
-from backend.analysis.schemas import AnalysisResult, BarrierDescription
+from backend.analysis.schemas import (
+    AnalysisResult,
+    BarrierDescription,
+    OperatorDescription,
+    OperatorRequest,
+    OperatorResult,
+)
 from backend.analysis.service import AnalysisService
 from backend.parlance.schemas import ParlanceWord
 
@@ -53,3 +59,11 @@ def analyze_text(
 
 def get_barrier_definitions() -> list[BarrierDescription]:
     return get_service().get_barrier_definitions()
+
+
+def get_operators(request: OperatorRequest) -> OperatorResult:
+    return get_service().get_operators(request)
+
+
+def get_operator_descriptions() -> list[OperatorDescription]:
+    return get_service().get_operator_descriptions()

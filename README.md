@@ -6,7 +6,15 @@ This repository contains the backend to the TOP Assist text optimization tool.
 
 ## Setup
 
-This project is [uv](https://docs.astral.sh/uv)-managed.
+This project is [uv](https://docs.astral.sh/uv)-managed. To sync with linter support, run `uv sync --group lint`.
+
+We use [pre-commit](https://pre-commit.com) to lint files and commit messages before each commit. Install the hooks once after cloning:
+
+```bash
+uv sync --group lint
+uv run pre-commit install
+```
+
 We ship an example environment file (`.env.example`), based on which you may create a `.env` file and fill out relevant variables.
 Please note that the application will not launch without a properly provided `.env` file.
 
@@ -39,6 +47,49 @@ Note that - while we do set some environment variables in `compose.yml` - you wi
 This is done in order to avoid leaking API keys into version control.
 **Please do not write your API keys into our `compose.yml` file.**
 
+### Information on Environment Variables
+
+The following is an overview of configuration variables, what they mean, and whether they are optional.
+Please keep in mind that these lists are hard to keep up to date; if you find that a tweakable value is missing from this documentation, feel free to add it!
+
+#### Observability
+
+The following variables allow you to configure observability.
+
+| Variable                   | Meaning                                                                     | Is optional? |
+| -------------------------- | --------------------------------------------------------------------------- | ------------ |
+| LOG_LEVEL                  | Which log severity gets logged. Configures both console and OTEL log level. | Yes          |
+| OTEL_SERVICE_NAME          | Under which name the service reports its telemetry to the TLP endpoint.     | Yes          |
+| OTEL_EXPORTER_TLP_ENDPOINT | Where to report metrics to. If left empty, telemetry will be disabled.      | Yes          |
+
+#### Data Persistence
+
+The following variables allow you to configure data persistence; their values may depend on values dictated by your deployed infrastructure.
+
+| Variable         | Meaning                                             | Is optional? |
+| ---------------- | --------------------------------------------------- | ------------ |
+| MONGODB_HOST     | Name of host running MongoDB.                       | No           |
+| MONGODB_PORT     | Port of MongoDB on given host. Defaults to `27017`. | Yes          |
+| MONGODB_USERNAME | Username for MongoDB connection.                    | No           |
+| MONGODB_PASSWORD | Password for MongoDB connection.                    | No           |
+| MONGODB_DATABASE | MongDB database in which to write/read collections. | No           |
+
+#### Language Processing
+
+The following variables allow you to configure components around language processing; barrier analysis-relevant components are prefixed with `ANALYSIS`, translation-relevant components are prefixed with `LLM`.
+
+| Variable             | Meaning                                                                                                                                                 | Is optional? |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| ANALYSIS_NUM_WORKERS | The number of workers (per fastAPI worker) that perform barrier analysis. Defaults to `1`.                                                              | Yes          |
+| ANALYSIS_MODEL       | Which `spacy` model to use as the NLP backend for barrier analysis. Keep in mind that these are language-specific. Defaults to `de_dep_news_trf`.       | Yes          |
+| LLM_BASE_URL         | The URL under which your OpenAI-compatible API is reachable.                                                                                            | No           |
+| LLM_API_KEY          | The API key with which to send inference requests to `LLM_BASE_URL`.                                                                                    | No           |
+| LLM_MODEL            | The model to use for inference.                                                                                                                         | No           |
+| LLM_PROMPT_VARIANT   | Which variation of the TOP Assist prompt to use. Useful for maintaining different model-specific prompts. Defaults to `default`, if you can believe it. | Yes          |
+| LLM_TEMPERATURE      | The temperature with which to execute inference. Defaults to `0.0`.                                                                                     | Yes          |
+| LLM_TIMEOUT_SECONDS  | How many seconds to wait for a response from an inference server before terminating the request. Defaults to `60`.                                      | Yes          |
+| LLM_MAX_RETRIES      | How often to retry an inference request on failure. Defaults to `0`.                                                                                    | Yes          |
+
 ---
 
 ## Telemetry
@@ -60,7 +111,7 @@ The OTLP port `4317` is published on `127.0.0.1` only, so a natively running bac
 
 Keep in mind that barrier analysis has its own worker pool, each with a somewhat chunky transformer-based spaCy model loaded into RAM.
 Moreover, **each fastAPI worker has its own barrier analysis worker pool**.
-This means that _n_ fastAPI workers with _m_ barrier analysis workers will lead to _n * m_ spaCy models loaded into RAM.
+This means that _n_ fastAPI workers with _m_ barrier analysis workers will lead to _n \* m_ spaCy models loaded into RAM.
 Adjust your configuration to avoid extraneous RAM usage.
 
 ### Separate service from observability

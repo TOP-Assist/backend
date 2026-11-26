@@ -1,0 +1,10 @@
+{
+  "operator_consistency_with_order": {
+    "validator_id": "OperatorConsistency",
+    "preserve_order": true
+  },
+  "operator_consistency_without_order": {
+    "validator_id": "OperatorConsistency",
+    "preserve_order": false
+  }
+}

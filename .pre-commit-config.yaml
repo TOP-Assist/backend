@@ -1,0 +1,50 @@
+# SPDX-FileCopyrightText: 2026 Bergische Universität Wuppertal
+# SPDX-FileCopyrightText: 2026 deepsight GmbH
+#
+# SPDX-License-Identifier: AGPL-3.0-or-later
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit, manual]
+
+repos:
+    - repo: https://github.com/pre-commit/pre-commit-hooks
+      rev: v6.0.0
+      hooks:
+          - id: check-added-large-files
+            args: [--maxkb=10000]
+          - id: end-of-file-fixer
+            exclude: '\.ipynb$'
+          - id: check-json
+          - id: check-toml
+          - id: check-xml
+          - id: check-yaml
+          - id: check-case-conflict
+          - id: detect-aws-credentials
+            args: [--allow-missing-credentials]
+          - id: check-symlinks
+          - id: check-merge-conflict
+          - id: requirements-txt-fixer
+    - repo: https://github.com/alessandrojcm/commitlint-pre-commit-hook
+      rev: v9.23.0
+      hooks:
+          - id: commitlint
+            additional_dependencies: ['@commitlint/config-conventional@19.2.2']
+            stages: [commit-msg]
+    - repo: https://github.com/astral-sh/ruff-pre-commit
+      rev: v0.17.5
+      hooks:
+          - id: ruff-check
+            args: [--fix]
+          - id: ruff-format
+    - repo: https://github.com/fsfe/reuse-tool
+      rev: v6.3.0
+      hooks:
+          - id: reuse
+    - repo: local
+      hooks:
+          - id: prettier
+            name: prettier
+            entry: prettier --write
+            language: node
+            additional_dependencies: ['prettier@3.6.2']
+            types_or: [json, yaml, markdown, html, css, javascript, ts, tsx]
+            exclude: ^data/
